@@ -1,0 +1,114 @@
+<div class="page">
+  <header class="title">
+    <h1>薪資明細列印</h1>
+  </header>
+
+  <form class="filters" (ngSubmit)="search()">
+    <label>
+      薪資月份
+      <select name="period" [(ngModel)]="period" (ngModelChange)="onPeriodChange()">
+        @for (p of periods(); track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      類別
+      <select name="type" [(ngModel)]="type" (ngModelChange)="onTypeChange()">
+        <option value="">全部</option>
+        <option value="staff">一般員工</option>
+        <option value="lecturer">講師 / 外師</option>
+      </select>
+    </label>
+
+    <label>
+      在職狀態
+      <select name="status" [(ngModel)]="status" (ngModelChange)="search()" [disabled]="type === 'lecturer'">
+        <option value="">全部</option>
+        <option value="在職">在職</option>
+        <option value="離職">離職</option>
+      </select>
+    </label>
+
+    <label>
+      部門 / 分校
+      <select name="group" [(ngModel)]="group" (ngModelChange)="search()" [disabled]="type === 'lecturer'">
+        <option value="">全部</option>
+        @for (g of groups(); track g) {
+          <option [value]="g">{{ g }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="grow">
+      關鍵字
+      <input name="keyword" [(ngModel)]="keyword" placeholder="姓名、英文名、工號、分校" />
+    </label>
+
+    <button type="submit" class="btn">查詢</button>
+  </form>
+
+  <div class="toolbar">
+    <span>共 {{ items().length }} 人，合計 {{ totalAmount() | number: '1.0-0' }} 元；已勾選 {{ selectedCount() }} 人</span>
+    <span class="spacer"></span>
+    <button class="btn" [disabled]="!selectedCount() || busy()" (click)="batch('preview')">預覽勾選</button>
+    <button class="btn" [disabled]="!selectedCount() || busy()" (click)="batch('download')">下載 PDF</button>
+    <button class="btn primary" [disabled]="!selectedCount() || busy()" (click)="batch('print')">列印勾選</button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+  @if (busy()) {
+    <div class="info">PDF 產生中…</div>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="c"><input type="checkbox" [checked]="allChecked()" (change)="toggleAll()" /></th>
+          <th>編號</th>
+          <th>類別</th>
+          <th>部門 / 科別</th>
+          <th>狀態</th>
+          <th>工號</th>
+          <th>姓名</th>
+          <th>分校 / 職務</th>
+          <th>發放</th>
+          <th class="r">實發金額</th>
+          <th class="c">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr><td colspan="11" class="c muted">載入中…</td></tr>
+        } @else {
+          @for (i of items(); track keyOf(i)) {
+            <tr [class.checked]="selected().has(keyOf(i))">
+              <td class="c"><input type="checkbox" [checked]="selected().has(keyOf(i))" (change)="toggle(i)" /></td>
+              <td>{{ i.seqNo }}</td>
+              <td>{{ i.type === 'staff' ? '員工' : '講師' }}</td>
+              <td>{{ i.group }}</td>
+              <td>
+                <span class="tag" [class.off]="i.status === '離職'">{{ i.status }}</span>
+              </td>
+              <td>{{ i.empCode }}</td>
+              <td class="name">{{ i.name }}</td>
+              <td class="pos">{{ i.position }}</td>
+              <td>{{ payMethod(i) }}</td>
+              <td class="r">{{ i.total | number: '1.0-0' }}</td>
+              <td class="c actions">
+                <button class="link" [disabled]="busy()" (click)="single(i, 'preview')">預覽</button>
+                <button class="link" [disabled]="busy()" (click)="single(i, 'print')">列印</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="11" class="c muted">查無資料</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

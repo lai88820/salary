@@ -1,0 +1,30 @@
+:host { display: block; font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; color: #222; }
+.page { max-width: 1280px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 22px; margin: 0 0 12px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; padding: 12px; background: #f6f7f9; border-radius: 8px; }
+.filters label { display: flex; flex-direction: column; font-size: 13px; gap: 4px; }
+.filters label.grow { flex: 1; min-width: 180px; }
+select, input:not([type='checkbox']) { height: 32px; padding: 0 8px; border: 1px solid #ccd; border-radius: 4px; font: inherit; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; font-size: 14px; }
+.toolbar .spacer { flex: 1; }
+.check { display: flex; align-items: center; gap: 4px; color: #555; }
+
+.btn { height: 32px; padding: 0 14px; border: 1px solid #99a; background: #fff; border-radius: 4px; cursor: pointer; font: inherit; }
+.btn.primary { background: #1f5fbf; border-color: #1f5fbf; color: #fff; }
+.btn:disabled { opacity: .5; cursor: default; }
+.link { border: 0; background: none; color: #1f5fbf; cursor: pointer; padding: 0 4px; font: inherit; }
+
+.error { padding: 8px 12px; background: #fdecea; color: #a12622; border-radius: 4px; margin-bottom: 8px; }
+.info { padding: 8px 12px; background: #eaf2fd; color: #1f5fbf; border-radius: 4px; margin-bottom: 8px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid #dde; border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid #eee; white-space: nowrap; text-align: left; }
+th { background: #f0f2f5; position: sticky; top: 0; }
+tr.checked td { background: #f3f8ff; }
+td.pos { white-space: normal; min-width: 140px; }
+.r { text-align: right; } .c { text-align: center; } .muted { color: #888; padding: 24px; }
+.tag { padding: 1px 6px; border-radius: 10px; background: #e7f5ea; color: #257a3e; font-size: 12px; }
+.tag.off { background: #f3e8e8; color: #9a3b3b; }

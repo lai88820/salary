@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────
+#  真實資料：絕對不能進公開 repo
+# ─────────────────────────────────────────────
+# 400 位員工的實際薪資，以及個別員工的薪資單
+payroll_*.sql
+*.xlsx
+*.xls
+
+# publish 出來的整包（裡面同時有連線字串和資料）
+PayslipApp/
+
+# ─────────────────────────────────────────────
+#  祕密：連線字串含資料庫密碼
+#  範本 appsettings.example.json 有進版控，實際值不進
+# ─────────────────────────────────────────────
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+
+# ───── .NET ─────
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+
+# ───── Angular / Node ─────
+node_modules/
+dist/
+.angular/
+npm-debug.log
+
+# 後端把 Angular build 結果複製進來，是產出物不是原始碼
+PayslipApi/wwwroot/
+
+# ───── 其他 ─────
+.DS_Store
+Thumbs.db

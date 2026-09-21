@@ -1,0 +1,170 @@
+<div class="page">
+  <h1>收費對帳</h1>
+  <p class="hint">上傳系統的「應收項目明細表」與各班「訂餐表／活動名單」，自動算出應退金額並列出所有不一致。</p>
+
+  <div class="filters">
+    <label class="grow">
+      應收項目明細表
+      <input type="file" accept=".xlsx,.xls" (change)="onBillingPick($event)" />
+    </label>
+
+    <label class="grow">
+      訂餐表／活動名單
+      <input type="file" accept=".xlsx,.xls" (change)="onRosterPick($event)" />
+    </label>
+
+    <label>
+      分頁
+      <select [(ngModel)]="rosterSheet" [disabled]="!sheets().length">
+        @for (s of sheets(); track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      收費項目
+      <select [(ngModel)]="profile" (ngModelChange)="onProfileChange()">
+        @for (p of profiles(); track p.name) {
+          <option [value]="p.name">{{ p.name }}（{{ p.unitPrice }}）</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      月份
+      <input type="text" [(ngModel)]="month" placeholder="2026年08月" size="12" />
+    </label>
+
+    <button class="btn primary" [disabled]="!canRun() || busy()" (click)="run()">
+      {{ busy() ? '比對中…' : '開始比對' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (result(); as r) {
+    @if (r.warning) {
+      <div class="warning">
+        <b>⚠ 這兩份檔可能配錯了</b>
+        <span>{{ r.warning }}</span>
+      </div>
+    }
+
+    <div class="cards">
+      <div class="card">
+        <span class="k">比對人數</span>
+        <span class="v">{{ r.summary.personCount | number }}</span>
+      </div>
+      <div class="card">
+        <span class="k">已收金額</span>
+        <span class="v">{{ r.summary.totalPaid | number }}</span>
+      </div>
+      <div class="card hl">
+        <span class="k">應退金額</span>
+        <span class="v">{{ r.summary.totalPendingRefund | number }}</span>
+      </div>
+      <div class="card" [class.bad]="r.summary.totalUnpaid > 0">
+        <span class="k">欠費</span>
+        <span class="v">{{ r.summary.totalUnpaid | number }}</span>
+      </div>
+      <div class="card">
+        <span class="k">異常筆數</span>
+        <span class="v">{{ r.summary.findingCount | number }}</span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" [class.primary]="tab() === 'findings'" (click)="tab.set('findings')">
+        異常清單（{{ r.findings.length }}）
+      </button>
+      <button class="btn" [class.primary]="tab() === 'rows'" (click)="tab.set('rows')">
+        逐人明細（{{ r.rows.length }}）
+      </button>
+      <span class="spacer"></span>
+      <button class="btn" (click)="exportXlsx()">匯出 Excel</button>
+    </div>
+
+    @if (tab() === 'findings') {
+      <div class="chips">
+        @for (c of typeCounts(); track c.type) {
+          <button class="chip" [class.on]="filterType() === c.type" (click)="toggleFilter(c.type)">
+            {{ c.label }} <b>{{ c.count }}</b>
+          </button>
+        }
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>嚴重度</th>
+              <th>型態</th>
+              <th>班級</th>
+              <th>學生</th>
+              <th class="r">金額</th>
+              <th>紙本</th>
+              <th>系統</th>
+              <th>說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of findings(); track $index) {
+              <tr>
+                <td>
+                  <span [class]="sevClass(f.severity)">{{ sevText(f.severity) }}</span>
+                </td>
+                <td>{{ labelOf(f.type) }}</td>
+                <td>{{ f.className }}</td>
+                <td>{{ f.studentName }}</td>
+                <td class="r">{{ f.amount ? (f.amount | number) : '' }}</td>
+                <td>{{ f.paperValue }}</td>
+                <td>{{ f.systemValue }}</td>
+                <td class="msg">{{ f.message }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="8" class="muted">沒有異常</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>班級</th>
+              <th>學生</th>
+              <th class="r">訂購</th>
+              <th class="r">已收份數</th>
+              <th class="r">實際</th>
+              <th class="r">已收金額</th>
+              <th class="r">已退費</th>
+              <th class="r">應退</th>
+              <th class="r">欠費</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (x of r.rows; track $index) {
+              <tr [class.warn]="x.pendingRefund > 0" [class.bad]="x.unpaid > 0">
+                <td>{{ x.className }}</td>
+                <td>{{ x.studentName }}</td>
+                <td class="r">{{ x.billedUnits }}</td>
+                <td class="r">{{ x.paidUnits }}</td>
+                <td class="r">{{ x.actualUnits }}</td>
+                <td class="r">{{ x.paid | number }}</td>
+                <td class="r">{{ x.alreadyRefunded ? (x.alreadyRefunded | number) : '' }}</td>
+                <td class="r b">{{ x.pendingRefund ? (x.pendingRefund | number) : '' }}</td>
+                <td class="r">{{ x.unpaid ? (x.unpaid | number) : '' }}</td>
+                <td>{{ x.status }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
